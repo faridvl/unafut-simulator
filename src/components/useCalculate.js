@@ -4,14 +4,13 @@ import { useState, useMemo } from 'react';
 export function useSimulator(initialTeams, matches) {
   const [predictions, setPredictions] = useState({});
 
-  // 1. CÁLCULO DE LA TABLA (Clasificación Actual)
+  // 1. CÁLCULO DE LA TABLA DINÁMICA
   const standings = useMemo(() => {
     let newStandings = initialTeams.map(t => ({ 
       ...t, 
       played: t.played || 0,
-      wins: t.wins || 0,
-      draws: t.draws || 0,
-      losses: t.losses || 0 
+      points: t.points || 0,
+      gd: t.gd || 0
     }));
 
     matches.forEach(match => {
@@ -25,64 +24,92 @@ export function useSimulator(initialTeams, matches) {
       away.played += 1;
 
       if (result === 'home') {
-        home.points += 3; home.wins += 1;
-        away.losses += 1;
+        home.points += 3;
+        home.gd += 1;
+        away.gd -= 1;
       } else if (result === 'away') {
-        away.points += 3; away.wins += 1;
-        home.losses += 1;
-      } else {
-        home.points += 1; home.draws += 1;
-        away.points += 1; away.draws += 1;
+        away.points += 3;
+        away.gd += 1;
+        home.gd -= 1;
+      } else if (result === 'draw') {
+        home.points += 1;
+        away.points += 1;
       }
     });
 
-    // Criterio UNAFUT: 1. Puntos, 2. GD (Diferencia), 3. Goles Favor
     return newStandings.sort((a, b) => b.points - a.points || b.gd - a.gd);
   }, [predictions, initialTeams, matches]);
 
-  // 2. LÓGICA DE ESCENARIOS (¿Qué necesita X equipo?)
-  const getTeamScenarios = (teamId) => {
-    const team = standings.find(t => t.id === teamId);
-    const fourthPlacePoints = standings[3]?.points || 0;
-    const diff = fourthPlacePoints - team.points;
+  // 2. LÓGICA DE PROBABILIDAD POR PARTIDO (Power Ranking)
+  const getMatchPrediction = (homeId, awayId) => {
+    const getWinRate = (id) => {
+      const team = initialTeams.find(t => t.id === id);
+      return (team.points / (team.played * 3)) * 100 || 50;
+    };
 
-    if (standings.findIndex(t => t.id === teamId) < 4) {
-      return { status: 'Clasificado', color: 'text-green-400', msg: "Actualmente en zona de clasificación." };
-    }
-    
-    const remaining = matches.filter(m => !predictions[m.id] && (m.homeId === teamId || m.awayId === teamId)).length;
-    const maxPossible = team.points + (remaining * 3);
+    const homeForm = getWinRate(homeId);
+    const awayForm = getWinRate(awayId);
+    const total = homeForm + awayForm;
 
-    if (maxPossible < fourthPlacePoints) {
-      return { status: 'Eliminado', color: 'text-red-400', msg: "Matemáticamente sin opciones de Top 4." };
-    }
-    return { status: 'En pelea', color: 'text-yellow-400', msg: `Necesita recuperar ${diff} puntos en ${remaining} juegos.` };
+    return {
+      homeProb: Math.round((homeForm / total) * 100),
+      awayProb: Math.round((awayForm / total) * 100),
+      favorite: homeForm > awayForm ? 'home' : 'away'
+    };
   };
 
-  // 3. ANÁLISIS DE PROBABILIDADES (Simulación de Monte Carlo)
-  // Simulamos 1000 finales de torneo aleatorios para obtener porcentajes
+  // 3. ANÁLISIS DE ESCENARIOS (Estilo Fnatic)
+  const getTeamScenarios = (teamId) => {
+    const teamIndex = standings.findIndex(t => t.id === teamId);
+    const team = standings[teamIndex];
+    const currentPos = teamIndex + 1;
+    const fourthPlacePoints = standings[3]?.points || 0;
+
+    const teamMatches = matches.filter(m => !predictions[m.id] && (m.homeId === teamId || m.awayId === teamId));
+    
+    // Partidos clave de otros (que afectan al top 4)
+    const externalKeyMatches = matches.filter(m => 
+      !predictions[m.id] && m.homeId !== teamId && m.awayId !== teamId &&
+      (standings.findIndex(t => t.id === m.homeId) < 5 || standings.findIndex(t => t.id === m.awayId) < 5)
+    ).slice(0, 3);
+
+    const currentProb = probabilities.find(p => p.id === teamId)?.percentage || 0;
+
+    let status = currentPos <= 4 ? "En Zona" : "En Pelea";
+    let color = currentPos <= 4 ? "text-green-400" : "text-yellow-400";
+    let msg = currentPos <= 4 
+      ? `Si mantiene el ritmo, clasifica con un ${currentProb.toFixed(1)}% de certeza.`
+      : `Necesita recuperar ${fourthPlacePoints - team.points} puntos para entrar al Top 4.`;
+
+    return {
+      status, color, msg, currentPos, 
+      currentPoints: team.points,
+      teamMatches, 
+      externalKeyMatches,
+      currentProb,
+      ifWinsAll: Math.min(currentProb + 35, 100).toFixed(1),
+      worstCase: Math.max(currentProb - 40, 0).toFixed(1)
+    };
+  };
+
+  // 4. MONTE CARLO (Probabilidades Globales)
   const probabilities = useMemo(() => {
     const resultsCount = {};
     initialTeams.forEach(t => resultsCount[t.id] = 0);
-    
     const iterations = 1000;
     const pendingMatches = matches.filter(m => !predictions[m.id]);
 
     for (let i = 0; i < iterations; i++) {
       let tempStandings = standings.map(t => ({ ...t }));
-      
       pendingMatches.forEach(m => {
         const rand = Math.random();
         const home = tempStandings.find(t => t.id === m.homeId);
         const away = tempStandings.find(t => t.id === m.awayId);
-        
-        if (rand < 0.45) home.points += 3; // Gana local
-        else if (rand < 0.75) away.points += 3; // Gana visita
-        else { home.points += 1; away.points += 1; } // Empate
+        if (rand < 0.45) home.points += 3;
+        else if (rand < 0.75) away.points += 3;
+        else { home.points += 1; away.points += 1; }
       });
-
-      tempStandings.sort((a, b) => b.points - a.points);
-      tempStandings.slice(0, 4).forEach(t => resultsCount[t.id]++);
+      tempStandings.sort((a, b) => b.points - a.points).slice(0, 4).forEach(t => resultsCount[t.id]++);
     }
 
     return Object.keys(resultsCount).map(id => ({
@@ -92,8 +119,8 @@ export function useSimulator(initialTeams, matches) {
   }, [standings, matches, predictions, initialTeams]);
 
   const updatePrediction = (matchId, winner) => {
-    setPredictions(prev => ({ ...prev, [matchId]: winner === prev[matchId] ? null : winner }));
+    setPredictions(prev => prev[matchId] === winner ? (({[matchId]: _, ...r}) => r)(prev) : ({...prev, [matchId]: winner}));
   };
 
-  return { standings, updatePrediction, predictions, getTeamScenarios, probabilities };
+  return { standings, updatePrediction, predictions, getTeamScenarios, probabilities, getMatchPrediction };
 }

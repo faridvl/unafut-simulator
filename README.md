@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 🧠 Modelo Predictivo: Algoritmo de Monte Carlo
 
-## Getting Started
+El núcleo de este simulador es un motor de probabilidad basado en el método de Monte Carlo. Cada vez que el usuario realiza un cambio, el sistema:
 
-First, run the development server:
+1. **Ponderación de Fortaleza:** Calcula un `win-rate` dinámico basado en los puntos obtenidos versus los jugados.
+2. **Iteración Masiva:** Ejecuta 600 simulaciones aleatorias de los partidos restantes.
+3. **Distribución de Probabilidad:** Determina el % de veces que un equipo termina en el Top 4 (zona de clasificación) para generar la métrica de "Chance de Playoffs".
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ⚙️ Personalización
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para adaptar este simulador a otra liga, solo debes modificar el objeto `getLeagueData` en `page.tsx`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Teams:** Define `id`, `name`, `points`, `gd` (diferencia de goles) y `logo`.
+- **Matches:** Define los duelos pendientes con sus respectivos `homeId` y `awayId`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🎨 Filosofía de Diseño (UX)
 
-## Learn More
+La interfaz fue diseñada bajo la estética de **eSports Pro-Dashboards**, priorizando:
 
-To learn more about Next.js, take a look at the following resources:
+- **Contraste Crítico:** Uso de azul neón y amarillo para datos que requieren atención inmediata.
+- **Simetría Informativa:** Un diseño 50/50 que permite comparar la tabla general con el análisis específico del equipo sin perder contexto.
+- **Feedback Instantáneo:** Micro-animaciones en Tailwind para reflejar cambios en las probabilidades tras cada predicción.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🗺️ Roadmap de Desarrollo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [ ] **Persistencia Local:** Guardar las predicciones en `localStorage` para no perder los datos al recargar.
+- [ ] **Modo "What If":** Permitir simular empates masivos automáticos para ver el peor escenario posible.
+- [ ] **Exportación:** Botón para descargar una imagen (captura) de la tabla proyectada.
+- [ ] **Historial de Tendencias:** Gráfica de líneas que muestre cómo ha variado la probabilidad de un equipo jornada a jornada.
 
-## Deploy on Vercel
+## 📜 Licencia
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Este proyecto está bajo la Licencia MIT - siéntete libre de usarlo, modificarlo y mejorarlo.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+Creado con pasión por el análisis deportivo y el código limpio. ⚽💻

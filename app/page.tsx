@@ -2,7 +2,6 @@
 import LeagueClient from '../src/components/LeagueClient';
 
 async function getLeagueData() {
-  // Datos proyectados a Febrero 2026 (Jornada 12 de 22)
   return {
     teams: [
       { id: 1, name: "Alajuelense", points: 28, gd: 14, played: 12, logo: "https://escudosfc.com.br/images/alajuelense_cos.png" },
@@ -15,25 +14,18 @@ async function getLeagueData() {
       { id: 8, name: "Sporting FC", points: 15, gd: -3, played: 12, logo: "https://escudosfc.com.br/images/sporting_cos.png" },
       { id: 9, name: "Pérez Zeledón", points: 11, gd: -8, played: 12, logo: "https://escudosfc.com.br/images/zelendon_cos.png" },
       { id: 10, name: "Puntarenas", points: 9, gd: -10, played: 12, logo: "https://escudosfc.com.br/images/puntarenas_cos.png" },
-      { id: 11, name: "Place 1", points: 9, gd: -10, played: 12, logo: "https://escudosfc.com.br/images/puntarenas_cos.png" },
-      { id: 12, name: "place 2", points: 9, gd: -10, played: 12, logo: "https://escudosfc.com.br/images/puntarenas_cos.png" },
     ],
     remainingMatches: [
-      // JORNADA 13
       { id: 301, homeId: 2, awayId: 3, homeName: "Saprissa", awayName: "San Carlos", date: "Feb 10" },
-      { id: 302, homeId: 1, awayId: 12, homeName: "Alajuelense", awayName: "Santos", date: "Feb 10" },
-      { id: 303, homeId: 4, awayId: 5, homeName: "Herediano", awayName: "Guanacasteca", date: "Feb 11" },
+      { id: 302, homeId: 1, awayId: 8, homeName: "Alajuelense", awayName: "Sporting FC", date: "Feb 10" }, // Corregido ID
+      { id: 303, homeId: 4, awayId: 5, homeName: "Herediano", awayName: "Guadalupe FC", date: "Feb 11" },
       { id: 304, homeId: 6, awayId: 7, homeName: "Cartaginés", awayName: "Liberia", date: "Feb 11" },
-
-      // JORNADA 14 (Duelos Directos)
       { id: 305, homeId: 3, awayId: 1, homeName: "San Carlos", awayName: "Alajuelense", date: "Feb 17" },
-      { id: 306, homeId: 5, awayId: 2, homeName: "Guanacasteca", awayName: "Saprissa", date: "Feb 17" },
+      { id: 306, homeId: 5, awayId: 2, homeName: "Guadalupe FC", awayName: "Saprissa", date: "Feb 17" },
       { id: 307, homeId: 7, awayId: 4, homeName: "Liberia", awayName: "Herediano", date: "Feb 18" },
-
-      // JORNADA 15 (Clásicos y Rivalidades)
       { id: 308, homeId: 1, awayId: 2, homeName: "Alajuelense", awayName: "Saprissa", date: "Feb 24" },
       { id: 309, homeId: 4, awayId: 3, homeName: "Herediano", awayName: "San Carlos", date: "Feb 24" },
-      { id: 310, homeId: 6, awayId: 5, homeName: "Cartaginés", awayName: "Guanacasteca", date: "Feb 25" },
+      { id: 310, homeId: 6, awayId: 5, homeName: "Cartaginés", awayName: "Guadalupe FC", date: "Feb 25" },
     ]
   };
 }
