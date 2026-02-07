@@ -1,0 +1,9 @@
+{
+  "teams": [
+    { "id": 1, "name": "Alajuelense", "points": 25, "gd": 10, "played": 12 },
+    { "id": 2, "name": "Saprissa", "points": 23, "gd": 8, "played": 12 }
+  ],
+  "remainingMatches": [
+    { "id": 101, "homeId": 1, "awayId": 2, "date": "2026-03-15" }
+  ]
+}
